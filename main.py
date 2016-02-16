@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from Wheel import *
 import sys, getopt, random
+from Population import *
+from Gene import *
 
 def display_theta(theta):
     print '['
@@ -71,16 +72,15 @@ def main(argv):
             filename = arg
             inputs, targets = getData(filename)
         elif opt in ('-i', '--max-iterations'):
-            max_iterations = arg
+            max_iterations = int(arg)
         elif opt in ('-a', '--learning-rate'):
             alpha = float(arg)
         elif opt in ('-g', '--gradient-descent'):
             P = Population(1, 3, -100.0, 100.0)
             P.gradient_descent(inputs, targets, max_iterations, alpha)
         elif opt in ('-r', '--roulette-wheel'):
-            P = Population(1, 3, -100.0, 100.0)
-            P.roulette_wheel_selection(inputs, targets, max_iterations, alpha)
-
+            P = Population(100, 6, -100.0, 100.0)
+            P.GA(inputs, targets, max_iterations, alpha)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
