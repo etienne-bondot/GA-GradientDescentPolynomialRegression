@@ -1,36 +1,14 @@
-import random, plotly, math, time, copy
-from plotly import tools
-from plotly.graph_objs import Scatter, Layout, Marker
+import random, math, time, settings, chart, sys
 from Gene import *
 
 class Population:
 
-    '''
-
-    A population is composed of an array of n genes.
-
-    '''
-
     def __init__(self, _nb_genes=1000, _nb_chromosomes=6, _min=-1.0, _max=1.0):
-        self.proba_mutation = 0.001
-        self.proba_crossover = 0.85
         self.nb_genes = _nb_genes
         self.nb_chromosomes = _nb_chromosomes
         self.genes = [Gene(_nb_chromosomes, _min, _max) for _ in range(_nb_genes)]
 
-    def get(self, _ind):
-        return self.genes[_ind]
-
-    def len(self):
-        return len(self.genes)
-
-    def copy(self):
-        return copy.copy(self)
-
-    def sorted_genes(self, inputs, targets):
-        self.genes = sorted(self.genes, key=lambda x: x.fitness(inputs, targets))
-
-    def gradient_descent(self, inputs, targets, max_iter=1000, alpha=0.001):
+    def gradient_descent(self, max_iter=1000, alpha=0.001):
         '''
         gradient descent algorithm
         while not converge or max iteration:
@@ -38,55 +16,104 @@ class Population:
                 O(j) := O(j) + alpha * (1/m) * (sum(y_i - Hx_i))x_i_J
         '''
         # take only one gene for gradient descent
-        G = self.get(0)
-        newG = G.copy()
-        m = len(inputs)
+        G = self.genes[0]
+        newG = Gene()
+        newG.chromosomes = list(G.chromosomes)
         fitness = []
-        for i in range(max_iter):
-            print 'iter: #{}'.format(i)
-            for j in range(G.len()):
-                newG.set(j, G.get(j) + alpha * G.partial_derivative(inputs, targets))
-            G = newG.copy()
-            fitness.append(G.gd_fitness(inputs, targets))
-        # generate a new set of data
-        outputs = [G.hypothesis(x) for x in inputs]
-        self.chart(inputs, targets, outputs, fitness)
-        return G
-
-    def GA(self, inputs, targets, max_iter = 1000, alpha = 0.001):
-        fitness = []
-        Gs = self.copy()
-        Gs.sorted_genes(inputs, targets)
-        for i in range(max_iter):
-            print '#{}'.format(i),
-            # we keep the best gene and add two others on which we have applied mutation or crossover
-            newGs = list()
-            newGs.append(Gs.get(0).copy())
-            for j in range(Gs.len() / 2):
-                G_1 = Gs.get(j * 2)
-                G_2 = Gs.get(j * 2 + 1)
-                if random.random() < self.proba_crossover:
-                    # print 'crossover'
-                    G_1.chromosomes, G_2.chromosomes = G_1.one_point_crossover(G_2)
-                if random.random() < self.proba_mutation:
-                    # print 'g-1 mutation'
-                    G_1.value_changing_mutation()
-                if random.random() < self.proba_mutation:
-                    # print 'g-2 mutation'
-                    G_2.value_changing_mutation()
-                newGs.extend([G_1, G_2])
-            Gs.genes = list(newGs)
-            Gs.sorted_genes(inputs, targets)
-            _fitness = Gs.get(0).fitness(inputs, targets)
-            print 'F:', _fitness
-            print ''
-            fitness.append(_fitness)
+        for _iter in range(max_iter):
+            print '{}%: {}\t{}'.format(_iter * 100 / max_iter, G.chromosomes, G.fitness)
+            for j in range(len(G.chromosomes)):
+                newG.chromosomes[j] = G.chromosomes[j] + alpha * G.partial_derivative()
+            G.chromosomes = list(newG.chromosomes)
+            fitness.append(G.gd_fitness())
 
         # generate a new set of data
-        print 'best: '
-        Gs.get(0).info()
-        outputs = [Gs.get(0).hypothesis(x) for x in inputs]
-        self.chart(inputs, targets, outputs, fitness)
+        outputs = [G.hypothesis(x) for x in settings.x]
+        chart.generate(outputs, fitness)
+
+    def GA(self, max_iter = 1000):
+        fitness = []
+        start_time = time.time()
+        self.genes = sorted(self.genes, key=lambda x: x.fitness)
+        for _iter in range(max_iter):
+            update_progress(_iter * 100 / max_iter, self.genes[0].fitness)
+            # print '{}%: {}\t{}'.format(_iter * 100 / max_iter, self.genes[0].chromosomes, self.genes[0].fitness)
+            newGs = []
+            newGs.append(self.genes[0])
+            for index in range(len(self.genes) / 2):
+                G = [Gene(), Gene()]
+                G[0].chromosomes = list(self.genes[index * 2].chromosomes)
+                G[1].chromosomes = list(self.genes[index * 2 + 1].chromosomes)
+                if random.random() < settings.proba_crossover:
+                    G[0].chromosomes, G[1].chromosomes = G[0].crossover(G[1])
+                if random.random() < settings.proba_mutation:
+                    G[0].mutate()
+                if random.random() < settings.proba_mutation:
+                    G[1].mutate()
+                newGs.extend(G)
+            self.genes = list(newGs)
+            for index in range(len(self.genes)):
+                self.genes[index].compute_fitness()
+            self.genes = sorted(self.genes, key=lambda x: x.fitness)
+            fitness.append(self.genes[0].fitness)
+
+        # generate a new set of data
+        print 'Solution: '
+        print self.genes[0].chromosomes
+        print 'fitness: ', self.genes[0].fitness
+        print 'processing time: {}'.format(time.time() - start_time)
+        outputs = [self.genes[0].hypothesis(x) for x in settings.x]
+        chart.generate_mpl(outputs, fitness)
+
+    def GA_second(self, max_iter = 1000):
+        fitness = []
+        start_time = time.time()
+        self.genes = sorted(self.genes, key=lambda x: x.fitness)
+        for _iter in range(max_iter):
+            update_progress(_iter * 100 / max_iter, self.genes[0].fitness)
+            # print '{}%: {}\t{}'.format(_iter * 100 / max_iter, self.genes[0].chromosomes, self.genes[0].fitness)
+            G_elites = []
+            new_pop = []
+
+            # [elites]: keep the half better genes
+            for index in range(len(self.genes) / 2):
+                G = Gene()
+                G.chromosomes = list(self.genes[index].chromosomes)
+                G_elites.append(G)
+            new_pop.extend(G_elites)
+
+            # [crossover] with the newGs as parents The higher the
+            # fitness value the higher the probability of that chromosome being
+            # selected for reproduction.
+            for index in range(len(G_elites) / 2):
+                G = [Gene(), Gene()]
+                G[0].chromosomes = list(G_elites[index * 2].chromosomes)
+                G[1].chromosomes = list(G_elites[index * 2 + 1].chromosomes)
+                if random.random() < settings.proba_crossover:
+                    # should we keep them only if they're better ?
+                    .chromosomes, G[1].chromosomes = G[0].crossover(G[1])
+
+                # [mutation]
+                if random.random() < settings.proba_mutation:
+                    G[0].mutate()
+                if random.random() < settings.proba_mutation:
+                    G[1].mutate()
+
+                new_pop.extend(G)
+
+            self.genes = list(new_pop)
+            for index in range(len(self.genes)):
+                self.genes[index].compute_fitness()
+            self.genes = sorted(self.genes, key=lambda x: x.fitness)
+            fitness.append(self.genes[0].fitness)
+
+        # generate a new set of data
+        print 'Solution: '
+        print self.genes[0].chromosomes
+        print 'fitness: ', self.genes[0].fitness
+        print 'processing time: {}'.format(time.time() - start_time)
+        outputs = [self.genes[0].hypothesis(x) for x in settings.x]
+        chart.generate_mpl(outputs, fitness)
 
     def select(self, _fitnesses):
         # probability
@@ -97,71 +124,8 @@ class Population:
             P -= f
         return i
 
-    def info(self):
-        print 'G(genes={}, chromosomes={})['.format(self.nb_genes, self.nb_chromosomes)
-        for G in self.genes:
-            print '     ',
-            G.info()
-        print ']'
-
-    def chart(self, _inputs, _targets, _outputs, _fitness):
-        plotly.offline.plot({
-            'data': [
-                Scatter(
-                    x = _inputs,
-                    y = _outputs,
-                    name='solutions',
-                    mode='lines+markers',
-                    line = dict(
-                        color = 'red',
-                        width = 1
-                    ),
-                    marker = Marker(
-                        color = 'red',
-                        symbol = 'x',
-                        size = 2
-                    )
-                ),
-                Scatter(
-                    x = _inputs,
-                    y = _targets,
-                    name = 'inputs',
-                    mode = 'markers',
-                    marker = Marker(
-                        color = 'blue',
-                        symbol = 'x',
-                        size = 2
-                    )
-                ),
-                Scatter(
-                    x = [i for i in range(len(_fitness))],
-                    y = _fitness, mode='lines+markers',
-                    name = 'fitness',
-                    line = dict(
-                        color = 'black',
-                        width = 1
-                    ),
-                    marker = Marker(
-                        color = 'black',
-                        symbol = 'x',
-                        size = 2
-                    ),
-                    xaxis = 'x2',
-                    yaxis = 'y2'
-                )
-            ],
-            'layout': Layout(
-                title = 'Gradient-Descent algorithm',
-                xaxis2 = dict(
-                    anchor='y2'
-                ),
-                yaxis=dict(
-                    title='Fx',
-                    domain=[0, 0.5]
-                ),
-                yaxis2=dict(
-                    title = 'fitness per epoch',
-                    domain=[0.5, 1]
-                )
-            )
-        })
+def update_progress(progress, last_fitness):
+    sys.stdout.write('\r')
+    # the exact output you're looking for:
+    sys.stdout.write("[%-40s] %d%% - Last fitness: %s" % ('=' * (progress * 40 / 100), progress, last_fitness))
+    sys.stdout.flush()
