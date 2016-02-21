@@ -1,89 +1,91 @@
-import random, math, copy
+import random, math, settings
 
 class Gene:
 
-    '''
-
-    A gene is an array of n chromosomes.
-
-    '''
-
-    def __init__(self, _nb_chromosomes, _min=-1.0, _max=1.0):
-        self.mutation_rate = 0.001
+    def __init__(self, _nb_chromosomes=6, _min=-1.0, _max=1.0):
         self.chromosomes = [random.uniform(_min, _max) for _ in range(_nb_chromosomes)]
+        self.fitness = 0.0
+        self.compute_fitness()
 
-    def copy(self):
-        return copy.copy(self)
+    def hypothesis(self, x):
+        return (
+            self.chromosomes[0] +
+            self.chromosomes[1] * x +
+            self.chromosomes[2] * x * x +
+            self.chromosomes[3] * x * x * x +
+            self.chromosomes[4] * x * x * x * x +
+            self.chromosomes[5] * x * x * x * x * x
+        )
 
-    def len(self):
-        return len(self.chromosomes)
-
-    def get(self, _ind):
-        return self.chromosomes[_ind]
-
-    def getChromosome(self):
-        return self.chromosomes
-
-    def set(self, _ind, value):
-        self.chromosomes[_ind] = value
-
-    def hypothesis(self, _feature):
-        H = self.get(0)
-        for i in range(1, self.len()):
-            H += self.get(i) * math.pow(_feature, i)
-        return H
-
-    def partial_derivative(self, _features, _targets):
+    def partial_derivative(self):
         D = 0.0
-        m = len(_features)
-        for x, y in zip(_features, _targets):
-            D += ((y - self.hypothesis(x)) * x)
-        D /= m
+        for index in range(settings.size):
+            D += ((settings.y[index] - self.hypothesis(settings.x[index])) * settings.x[index])
+        D = D / (float)(settings.size)
         return D
 
-    def gd_fitness(self, _features, _targets):
+    def gd_fitness(self):
         F = 0.0
-        m = len(_features)
-        try:
-            for x, y in zip(_features, _targets):
-                F += math.pow(y - self.hypothesis(x), 2)
-            print 'fitness: ', F / (2.0 * m)
-        except OverflowError:
-            print 'Err: fitness too large, overflow'
-            raise
-        return F / 2.0
+        cost = 0.0
+        for index in range(settings.size):
+            cost += settings.y[index] - self.hypothesis(settings.x[index])
+        self.fitness = cost / (2 * settings.size)
+        return self.fitness
 
-    def fitness(self, _features, _targets):
+    def compute_fitness(self):
         F = 0.0
-        m = len(_features)
-        try:
-            for x, y in zip(_features, _targets):
-                F += math.pow(y - self.hypothesis(x), 2)
-            F = math.sqrt(F)
-        except OverflowError:
-            print 'Err: fitness too large, overflow'
-            raise
-        return F
+        for index in range(settings.size):
+            cost = settings.y[index] - self.hypothesis(settings.x[index])
+            F += cost * cost
+        self.fitness = math.sqrt(F)
+
+    '''
+        One point and two points crossover doesn't seems efficient
+    '''
 
     def one_point_crossover(self, G):
-        index = random.randint(1, self.len() - 1)
-        G_1 = Gene(self.len())
-        G_2 = Gene(self.len())
+        index = random.randint(1, len(self.chromosomes) - 1)
+        childs = [Gene() for _ in range(2)]
+        childs[0].chromosomes = list(self.chromosomes)
+        childs[1].chromosomes = list(G.chromosomes)
         for i in range(index):
-            G_1.set(i, self.get(i))
-        for i in range(index, self.len()):
-            G_1.set(i, G.get(i))
-        for i in range(index):
-            G_2.set(i, G.get(i))
-        for i in range(index, self.len()):
-            G_2.set(i, self.get(i))
-        return G_1.chromosomes, G_2.chromosomes
+            childs[1].chromosomes[i] = self.chromosomes[i]
+        for i in range(index, len(self.chromosomes)):
+            childs[0].chromosomes[i] = G.chromosomes[i]
+        return childs[0].chromosomes, childs[1].chromosomes
 
-    def value_changing_mutation(self):
-        index = random.randint(0, self.len() - 1)
-        mutation = abs(self.mutation_rate * self.get(index))
-        mutation *= -1.0 if random.random() < 0.5 else 1.0
-        self.set(index, self.get(index) + mutation)
+    def two_points_crossover(self, G):
+        index_1 = random.randint(1, len(self.chromosomes) - 1)
+        index_2 = random.randint(1, len(self.chromosomes) - 1)
+        childs = [Gene() for _ in range(2)]
+        childs[0].chromosomes = list(self.chromosomes)
+        childs[1].chromosomes = list(G.chromosomes)
+        for i in range(min(index_1, index_2)):
+            childs[0].chromosomes[i] = G.chromosomes[i]
+            childs[1].chromosomes[i] = self.chromosomes[i]
+        for i in range(max(index_1, index_2), len(self.chromosomes)):
+            childs[0].chromosomes[i] = G.chromosomes[i]
+            childs[1].chromosomes[i] = self.chromosomes[i]
+        return childs[0].chromosomes, childs[1].chromosomes
 
-    def info(self):
-        print self.chromosomes
+    '''
+        Chromosomes alteration seems more efficient than
+        one point or two points crossover.
+    '''
+    def crossover(self, G):
+        childs = [Gene() for _ in range(3)]
+        for index in range(len(childs)):
+            childs[index].chromosomes = list(self.chromosomes)
+        for index in range(len(self.chromosomes)):
+            childs[0].chromosomes[index] = 0.5 * self.chromosomes[index] + 0.5 * G.chromosomes[index]
+            childs[1].chromosomes[index] = 1.5 * self.chromosomes[index] - 0.5 * G.chromosomes[index]
+            childs[2].chromosomes[index] = -0.5 * self.chromosomes[index] + 1.5 * G.chromosomes[index]
+        childs = sorted(childs, key=lambda x: x.fitness)[:2]
+        return childs[0].chromosomes, childs[1].chromosomes
+
+    def mutate(self):
+        index = random.randint(0, len(self.chromosomes) - 1)
+        mutation = abs(settings.mutation_rate * self.chromosomes[index])
+        if random.random() < 0.5:
+            mutation *= -1.0
+        self.chromosomes[index] += mutation
