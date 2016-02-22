@@ -68,10 +68,10 @@ def generate(_outputs, _fitness):
         )
     })
 
-def generate_mpl(_outputs, _fitness):
+def generate_mpl(title, _outputs, _fitness):
     factor = 0.1
     fig = plt.figure()
-    fig.suptitle("GA applicant processing", fontsize=16)
+    fig.suptitle('GA applicant processing - ' + title, fontsize=16)
 
     # error
     ax = plt.subplot(2, 1, 1)
