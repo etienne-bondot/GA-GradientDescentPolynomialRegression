@@ -68,6 +68,49 @@ def generate(_outputs, _fitness):
         )
     })
 
+def plot_that(title, _outputs, _fitness, _worst_fitness, _average_fitness):
+    factor = 0.1
+    fig = plt.figure()
+    fig.suptitle('Fitness per epoch (_/iteration) - ' + title, fontsize=16)
+
+    # error
+    ax = plt.subplot(3, 1, 1)
+    ax.set_ylabel('Best Fitness')
+    ax.set_xlabel('Epoch')
+    ax.plot([i for i in range(len(_fitness))], _fitness, 'r-', label='Best fitness')
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    new_xlim = (xlim[0] + xlim[1])/2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)
+    new_ylim = (ylim[0] + ylim[1])/2 + np.array((-0.5, 0.5)) * (ylim[1] - ylim[0]) * (1 + factor)
+    ax.set_xlim(new_xlim)
+    ax.set_ylim(new_ylim)
+
+    # data
+    ax = plt.subplot(3, 1, 2)
+    ax.set_ylabel('Worst Fitness')
+    ax.set_xlabel('Epoch')
+    ax.plot([i for i in range(len(_worst_fitness))], _worst_fitness, 'b-', label='Worst fitness')
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    new_xlim = (xlim[0] + xlim[1])/2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)
+    new_ylim = (ylim[0] + ylim[1])/2 + np.array((-0.5, 0.5)) * (ylim[1] - ylim[0]) * (1 + factor)
+    ax.set_xlim(new_xlim)
+    ax.set_ylim(new_ylim)
+
+    # solutions
+    ax = plt.subplot(3, 1, 3)
+    ax.set_ylabel('Average Fitness')
+    ax.set_xlabel('Epoch')
+    ax.plot([i for i in range(len(_average_fitness))], _average_fitness, 'g-', label='Average fitness')
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    new_xlim = (xlim[0] + xlim[1])/2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)
+    new_ylim = (ylim[0] + ylim[1])/2 + np.array((-0.5, 0.5)) * (ylim[1] - ylim[0]) * (1 + factor)
+    ax.set_xlim(new_xlim)
+    ax.set_ylim(new_ylim)
+
+    plt.show()
+
 def generate_mpl(title, _outputs, _fitness):
     factor = 0.1
     fig = plt.figure()
@@ -78,7 +121,7 @@ def generate_mpl(title, _outputs, _fitness):
     ax.set_title('Fitness per epoch (_/iteration)')
     ax.set_ylabel('Fitness: h0 = sqrt((Fx - y)^2)')
     ax.set_xlabel('Epoch')
-    ax.plot([i for i in range(len(_fitness))], _fitness, 'r-')
+    ax.plot([i for i in range(len(_fitness))], _fitness, 'r-', label='Best fitness')
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
     new_xlim = (xlim[0] + xlim[1])/2 + np.array((-0.5, 0.5)) * (xlim[1] - xlim[0]) * (1 + factor)

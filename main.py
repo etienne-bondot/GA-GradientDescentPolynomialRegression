@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, getopt, settings, time
+import sys, getopt, settings, time, chart
 from Population import *
 
 def usage():
@@ -11,15 +11,17 @@ def usage():
     print '-p, --population : the number of genes within the population'
     print '-t, --type= [special,one_point_crossover,two_points_crossover] : type of crossover applied on the population'
 
-def update_progress(progress, last_fitness):
+def update_progress(progress, population):
     sys.stdout.write('\r')
-    sys.stdout.write("[%-40s] %d%% - Last fitness: %s" % ('=' * (progress * 40 / 100), progress, last_fitness))
+    sys.stdout.write("[%-40s] %d%% - [%s | %s | %s]" % ('=' * (progress * 40 / 100), progress, population.get_best_fitness(), population.get_worst_fitness(), population.get_average_fitness()))
     sys.stdout.flush()
+    if progress % 10 == 0:
+        population.store_fitnesses(progress)
 
 def main(argv):
     filename = ''
     crossover_methods = []
-    max_iterations = 3000
+    max_iterations = 1000
     pop_size = 500
 
     try:
@@ -46,16 +48,16 @@ def main(argv):
             pop_size = int(arg)
         elif opt in ('-t', '--type'):
             crossover_methods = arg.split(',')
+            print crossover_methods
 
     start_time = time.time()
-
     # testing special crossover
     if not crossover_methods or 'special' in crossover_methods:
         P = Population(pop_size)
         for i in range(max_iterations):
-            update_progress(i * 100 / max_iterations, P.best_fitness())
+            update_progress(i * 100 / max_iterations, P)
             P.evolve('special')
-            if P.best_fitness() == 0: break
+            if P.get_best_fitness() == 0: break
 
         P.result('special')
         print 'processing time: {}'.format(time.time() - start_time)
@@ -64,24 +66,34 @@ def main(argv):
     if not crossover_methods or 'one_point_crossover' in crossover_methods:
         P = Population(pop_size)
         for i in range(max_iterations):
-            update_progress(i * 100 / max_iterations, P.best_fitness())
+            update_progress(i * 100 / max_iterations, P)
             P.evolve('one_point_crossover')
-            if P.best_fitness() == 0: break
+            if P.get_best_fitness() == 0: break
 
         P.result('one_point_crossover')
         print 'processing time: {}'.format(time.time() - start_time)
 
-    # testing one point crossover
+    # testing two points crossover
     if not crossover_methods or 'two_points_crossover' in crossover_methods:
         P = Population(pop_size)
         for i in range(max_iterations):
-            update_progress(i * 100 / max_iterations, P.best_fitness())
+            update_progress(i * 100 / max_iterations, P)
             P.evolve('two_points_crossover')
-            if P.best_fitness() == 0: break
+            if P.get_best_fitness() == 0: break
 
         P.result('two_points_crossover')
         print 'processing time: {}'.format(time.time() - start_time)
 
+    # testing average crossover
+    if not crossover_methods or 'average_crossover' in crossover_methods:
+        P = Population(pop_size)
+        for i in range(max_iterations):
+            update_progress(i * 100 / max_iterations, P)
+            P.evolve('average_crossover')
+            if P.get_best_fitness() == 0: break
+
+        P.result('average_crossover')
+        print 'processing time: {}'.format(time.time() - start_time)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
