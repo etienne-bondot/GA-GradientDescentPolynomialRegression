@@ -37,11 +37,7 @@ class Population:
         return best
 
     def select_parents(self):
-        father = self.tournament_selection()
-        mother = self.tournament_selection()
-        while father.genes == mother.genes:
-            mother = self.tournament_selection()
-        return father, mother
+        return self.tournament_selection(), self.tournament_selection()
 
     def evolve(self, method):
         # [elites]: keep a portion of the best chromosomes
@@ -61,9 +57,9 @@ class Population:
             idx += 1
 
         self.chromosomes = sorted(buf, key=lambda x: x.fitness)
-        # self.best_fitness.append(self.get_best_fitness())
-        # self.worst_fitness.append(self.get_worst_fitness())
-        # self.average_fitness.append(self.get_average_fitness())
+        self.best_fitness.append(self.get_best_fitness())
+        self.worst_fitness.append(self.get_worst_fitness())
+        self.average_fitness.append(self.get_average_fitness())
 
     def get_best_fitness(self):
         return self.chromosomes[0].fitness
