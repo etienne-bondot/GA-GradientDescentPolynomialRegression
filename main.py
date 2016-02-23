@@ -49,7 +49,6 @@ def main(argv):
             print crossover_methods
 
     start_time = time.time()
-    # testing special crossover
     for method in crossover_methods:
         P = Population(pop_size)
         for i in range(max_iterations):
