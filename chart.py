@@ -1,8 +1,8 @@
 import settings
 import matplotlib.pyplot as plt
 
-def plot_that(title, _outputs, _fitness, _worst_fitness, _average_fitness):
-    plt.title('Fitness per epoch (_/iteration) - ' + title, fontsize=16)
+def generate_fitness_chart(_outputs, _fitness, _worst_fitness, _average_fitness):
+    plt.title('Fitness per epoch (_/iteration)', fontsize=16)
     plt.ylabel('Fitness')
     plt.xlabel('Epoch')
     plt.semilogy([i for i in range(len(_fitness))], _fitness, 'r', label='Best fitness')
@@ -11,7 +11,7 @@ def plot_that(title, _outputs, _fitness, _worst_fitness, _average_fitness):
     plt.legend()
     plt.show()
 
-def generate_mpl(title, _outputs, _fitness):
+def generate_diff_chart(_outputs, _fitness):
     plt.title('GA applicant processing', fontsize=16)
     plt.ylabel('f(x)')
     plt.xlabel('x')
