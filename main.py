@@ -1,19 +1,33 @@
 #!/usr/bin/env python
 
-import sys, getopt, settings, time, chart
+import sys, getopt, settings, time
 from Population import *
 
 def usage():
+    print ''
     print './main.py -f <datafile> [opts]'
     print '-h, --help : help'
-    print '-f, --file= ... : datafile'
+    print '-f, --file=... : datafile'
     print '-i, --max-iterations : max iterations'
     print '-p, --population : the number of genes within the population'
-    print '-t, --type= [special,one_point_crossover,two_points_crossover] : type of crossover applied on the population'
+    print '-t, --type=<TYPE,TYPE> : type of crossover applied on the population'
+    print 'types:'
+    print '- default_crossover'
+    print '- one_point_crossover'
+    print '- two_points_crossover'
+    print '- average_crossover'
+    print ''
+    print 'Example:'
+    print '$> python main.py -f data/datfile.dat -t default_crossover -i 1000 -p 1000'
+    print ''
 
 def update_progress(progress, population):
     sys.stdout.write('\r')
-    sys.stdout.write("[%-40s] %d%% - [%s | %s | %s]" % ('=' * (progress * 40 / 100), progress, population.get_best_fitness(), population.get_worst_fitness(), population.get_average_fitness()))
+    sys.stdout.write("[%-40s] %d%% - [%s | %s | %s]%-15s" % ('=' * (progress * 40 / 100),
+        progress,
+        population.get_best_fitness(),
+        population.get_worst_fitness(),
+        population.get_average_fitness(), ''))
     sys.stdout.flush()
 
 def main(argv):
@@ -46,17 +60,20 @@ def main(argv):
             pop_size = int(arg)
         elif opt in ('-t', '--type'):
             crossover_methods = arg.split(',')
-            print crossover_methods
 
     start_time = time.time()
     for method in crossover_methods:
         P = Population(pop_size)
         for i in range(max_iterations):
+            try:
+                P.evolve(method)
+            except KeyError, e:
+                usage()
+                sys.exit()
             update_progress(i * 100 / max_iterations, P)
-            P.evolve(method)
             if P.get_best_fitness() == 0: break
         update_progress(i * 100 / max_iterations, P)
-        P.result(method)
+        P.result()
         print 'processing time: {}'.format(time.time() - start_time)
 
 if __name__ == '__main__':
