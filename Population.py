@@ -79,11 +79,11 @@ class Population:
             self.worst_fitness.append(self.get_worst_fitness())
             self.average_fitness.append(self.get_average_fitness())
 
-    def result(self, method):
+    def result(self):
         print ''
-        print 'Solution with', method, ' crossover method: '
+        print 'Solutions: '
         print self.chromosomes[0].genes
         print 'fitness: ', self.chromosomes[0].fitness
         outputs = [self.chromosomes[0].hypothesis(self.chromosomes[0].genes, x) for x in settings.x]
-        chart.generate_mpl(method, outputs, self.best_fitness)
-        chart.plot_that(method, outputs, self.best_fitness, self.worst_fitness, self.average_fitness)
+        chart.generate_diff_chart(outputs, self.best_fitness)
+        chart.generate_fitness_chart(outputs, self.best_fitness, self.worst_fitness, self.average_fitness)
