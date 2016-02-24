@@ -13,7 +13,7 @@ class Chromosome:
             'one_point_crossover': self.one_point_crossover,
             'two_points_crossover': self.two_points_crossover,
             'average_crossover': self.average_crossover,
-            'special': self.crossover
+            'default_crossover': self.crossover
         }
 
     @staticmethod
