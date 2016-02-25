@@ -87,8 +87,9 @@ class Chromosome:
         child2 = list(self.genes)
         child3 = list(self.genes)
         for idx in range(len(self.genes)):
-            child1[idx] = random.uniform(-2.0, 2.0) * self.genes[idx] + random.uniform(-2.0, 2.0) * parent.genes[idx]
-            child2[idx] = random.uniform(-2.0, 2.0) * self.genes[idx] - random.uniform(-2.0, 2.0) * parent.genes[idx]
+            child1[idx] = (self.genes[idx] + parent.genes[idx]) * 0.5
+            child2[idx] = self.genes[idx] + (self.genes[idx] - parent.genes[idx]) * 0.5
+            child3[idx] = parent.genes[idx] + (parent.genes[idx] - self.genes[idx]) * 0.5
         childs = [Chromosome(child1), Chromosome(child2), Chromosome(child3)]
         return sorted(childs, key=lambda x: x.fitness)[0]
 
