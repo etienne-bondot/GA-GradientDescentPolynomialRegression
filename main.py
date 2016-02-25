@@ -23,7 +23,7 @@ def usage():
 
 def update_progress(progress, population):
     sys.stdout.write('\r')
-    sys.stdout.write("[%-40s] %d%% - [%s | %s | %s]%-15s" % ('=' * (progress * 40 / 100),
+    sys.stdout.write("[%-40s] %d%% - [%s | %s | %s]%-5s" % ('=' * (progress * 40 / 100),
         progress,
         population.get_best_fitness(),
         population.get_worst_fitness(),
