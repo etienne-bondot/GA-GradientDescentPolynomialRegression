@@ -73,8 +73,8 @@ class Chromosome:
         child2 = list(self.genes)
         child3 = list(self.genes)
         for idx in range(len(self.genes)):
-            child1[idx] = (parent.genes[idx] + self.genes[idx]) / 2.0
-            child2[idx] = (parent.genes[idx] + self.genes[idx]) / 2.0 * -1
+            child1[idx] = (parent.genes[idx] + self.genes[idx]) * 0.5
+            child2[idx] = (parent.genes[idx] + self.genes[idx]) * 0.5 * -1
         childs = [Chromosome(child1), Chromosome(child2), Chromosome(child3)]
         return sorted(childs, key=lambda x: x.fitness)[0]
 
