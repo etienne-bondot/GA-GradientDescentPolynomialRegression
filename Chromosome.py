@@ -53,12 +53,12 @@ class Chromosome:
         Two points crossover between two parents previously selected.
         Return the best fitness between the children and the principal parent.
         """
-        pivot1 = random.randint(1, len(self.genes) / 2)
-        pivot2 = -1
-        while pivot2 <= pivot1:
-            pivot2 = random.randint(len(self.genes) / 2, len(self.genes) - 1)
-        child1 = parent.genes[pivot2:] + self.genes[pivot1:pivot2] + parent.genes[0:pivot1]
-        child2 = self.genes[pivot2:] + parent.genes[pivot1:pivot2] + self.genes[0:pivot1]
+        pivot1 = random.randint(1, len(self.genes) - 1)
+        pivot2 = random.randint(1, len(self.genes) - 1)
+        if pivot1 > pivot2:
+            pivot1, pivot2 = pivot2, pivot1
+        child1 = parent.genes[:pivot1] + self.genes[pivot1:pivot2] + parent.genes[pivot2:]
+        child2 = self.genes[:pivot1] + parent.genes[pivot1:pivot2] + self.genes[pivot2:]
         child3 = list(self.genes)
         childs = [Chromosome(child1), Chromosome(child2), Chromosome(child3)]
         return sorted(childs, key=lambda x: x.fitness)[0]
@@ -97,10 +97,8 @@ class Chromosome:
         """
         Gene mutation.
         """
-        mutated_chromosome = list(self.genes)
+        mutated_chromosome = Chromosome(self.genes)
         idx = random.randint(0, len(self.genes) - 1)
-        mutation = abs(mutation_rate * self.genes[idx])
-        if random.random() < 0.5:
-            mutation *= -1.0
-        mutated_chromosome[idx] += mutation
-        return Chromosome(mutated_chromosome)
+        mutation = mutation_rate * self.genes[idx]
+        mutated_chromosome.genes[idx] += mutation * -1.0 if random.random() < 0.5 else mutation
+        return mutated_chromosome
