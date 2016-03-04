@@ -83,14 +83,14 @@ class Chromosome:
         Special crossover between two parents previously selected, looks like a mutation.
         Return the best fitness between the children and the principal parent.
         """
-        child1 = list(self.genes)
-        child2 = list(self.genes)
-        child3 = list(self.genes)
-        for idx in range(len(self.genes)):
-            child1[idx] = (self.genes[idx] + parent.genes[idx]) * 0.5
-            child2[idx] = self.genes[idx] + (self.genes[idx] - parent.genes[idx]) * 0.5
-            child3[idx] = parent.genes[idx] + (parent.genes[idx] - self.genes[idx]) * 0.5
-        childs = [Chromosome(child1), Chromosome(child2), Chromosome(child3)]
+        r = random.randint(1, len(self.genes) - 1)
+        child1 = self.genes[:r] + [(self.genes[i] + parent.genes[i]) * 0.5 for i in range(r, len(self.genes))]
+        child2 = self.genes[:r] + [self.genes[i] + (self.genes[i] - parent.genes[i]) * 0.5 for i in range(r, len(self.genes))]
+        child3 = self.genes[:r] + [parent.genes[i] + (parent.genes[i] - self.genes[i]) * 0.5 for i in range(r, len(self.genes))]
+        child4 = [(self.genes[i] + parent.genes[i]) * 0.5 for i in range(0, r)] + self.genes[r:]
+        child5 = [self.genes[i] + (self.genes[i] - parent.genes[i]) * 0.5 for i in range(0, r)] + self.genes[r:]
+        child6 = [parent.genes[i] + (parent.genes[i] - self.genes[i]) * 0.5 for i in range(0, r)] + self.genes[r:]
+        childs = [Chromosome(child1), Chromosome(child2), Chromosome(child3), Chromosome(child4), Chromosome(child5), Chromosome(child6)]
         return sorted(childs, key=lambda x: x.fitness)[0]
 
     def mutate(self, mutation_rate):
