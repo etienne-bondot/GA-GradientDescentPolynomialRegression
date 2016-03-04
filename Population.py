@@ -10,7 +10,7 @@ class Population:
     _tournamentSize = 3
     _genes_per_chromosome = 6
 
-    def __init__(self, size=500, crossover=0.85, elitism=0.1, mutation=0.01):
+    def __init__(self, size=500, crossover=0.85, elitism=0.01, mutation=0.001):
         # Empirical studies have shown that better results are achieved by a crossover
         # probability of between 0.65 and 0.85, which implies that the probability of
         # a selected chromosome surviving to the next generation unchanged
@@ -71,13 +71,6 @@ class Population:
         avg_fitness = 0.0
         for c in self.chromosomes: avg_fitness += c.fitness
         return avg_fitness / (float)(len(self.chromosomes))
-
-    def store_fitnesses(self, progress):
-        if self.progress != progress:
-            self.progress = progress
-            self.best_fitness.append(self.get_best_fitness())
-            self.worst_fitness.append(self.get_worst_fitness())
-            self.average_fitness.append(self.get_average_fitness())
 
     def result(self):
         print ''
