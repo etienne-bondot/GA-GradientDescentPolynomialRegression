@@ -11,6 +11,7 @@ def usage():
     print '-i, --max-iterations : max iterations'
     print '-p, --population : the number of genes within the population'
     print '-t, --type=<TYPE,TYPE> : type of crossover applied on the population'
+    print '-s, --stop : stop when the best fitness is 0, otherwise continue until the max iteration is reach'
     print 'types:'
     print '- default_crossover'
     print '- one_point_crossover'
@@ -18,7 +19,7 @@ def usage():
     print '- average_crossover'
     print ''
     print 'Example:'
-    print '$> python main.py -f data/datfile.dat -t default_crossover -i 1000 -p 1000'
+    print '$> python main.py -f data/datfile.dat -t default_crossover -i 1000 -p 1000 -s'
     print ''
 
 def update_progress(progress, population):
@@ -35,14 +36,16 @@ def main(argv):
     crossover_methods = []
     max_iterations = 1000
     pop_size = 500
+    stop = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hf:i:p:t:', [
+        opts, args = getopt.getopt(argv, 'hf:i:p:t:s', [
         'help',
         'file=',
         'max-iterations',
         'population',
-        'type='
+        'type=',
+        's'
     ])
     except getopt.GetoptError:
         usage()
@@ -60,6 +63,8 @@ def main(argv):
             pop_size = int(arg)
         elif opt in ('-t', '--type'):
             crossover_methods = arg.split(',')
+        elif opt in ('-s', '--stop'):
+            stop = True
 
     start_time = time.time()
     for method in crossover_methods:
@@ -71,10 +76,11 @@ def main(argv):
                 usage()
                 sys.exit()
             update_progress(i * 100 / max_iterations, P)
-            if P.get_best_fitness() == 0: break
+            if stop == True:
+                if int(P.get_best_fitness()) <= 0: break
         update_progress(i * 100 / max_iterations, P)
-        P.result()
         print 'processing time: {}'.format(time.time() - start_time)
+        P.result()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
