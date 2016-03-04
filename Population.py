@@ -25,7 +25,7 @@ class Population:
         self.progress = -1
 
         buf = []
-        for _ in range(size): buf.append(Chromosome([random.uniform(-1000.0, 1000.0) for _ in range(Population._genes_per_chromosome)]))
+        for _ in range(size): buf.append(Chromosome([random.uniform(-10.0, 10.0) for _ in range(Population._genes_per_chromosome)]))
         self.chromosomes = list(sorted(buf, key=lambda x: x.fitness))
 
     def tournament_selection(self):
