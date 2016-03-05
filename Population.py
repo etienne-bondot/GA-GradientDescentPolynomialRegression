@@ -29,6 +29,9 @@ class Population:
         self.chromosomes = list(sorted(buf, key=lambda x: x.fitness))
 
     def tournament_selection(self):
+        """
+        Tournament selection.
+        """
         best = self.chromosomes[random.randint(0, len(self.chromosomes) - 1)]
         for _ in range(Population._tournamentSize):
             other = self.chromosomes[random.randint(0, len(self.chromosomes) - 1)]
@@ -40,6 +43,9 @@ class Population:
         return self.tournament_selection(), self.tournament_selection()
 
     def evolve(self, method):
+        """
+        Algorithm to envolve the population.
+        """
         # [elites]: keep a portion of the best chromosomes
         size = len(self.chromosomes)
         idx = int(round(size * self.elitism))
@@ -62,17 +68,33 @@ class Population:
         self.average_fitness.append(self.get_average_fitness())
 
     def get_best_fitness(self):
+        """
+        Return the best fitness of the population.
+        """
         return self.chromosomes[0].fitness
 
     def get_worst_fitness(self):
+        """
+        Return the worst fitness of the population.
+        """
         return self.chromosomes[-1].fitness
 
     def get_average_fitness(self):
+        """
+        Return the average fitness of the population.
+        """
         avg_fitness = 0.0
         for c in self.chromosomes: avg_fitness += c.fitness
         return avg_fitness / (float)(len(self.chromosomes))
 
     def result(self):
+        """
+        Display:
+        - the best genes of the population,
+        - the best fitness of the population,
+        - a chart representing the original data compared with the data generated with the best genes,
+        - a chart with the best, worst and average fitnesses per epoch
+        """
         print ''
         print 'Solutions: '
         print self.chromosomes[0].genes

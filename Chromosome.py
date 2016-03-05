@@ -18,6 +18,10 @@ class Chromosome:
 
     @staticmethod
     def hypothesis(genes, x):
+        """
+        Hypothesis function, determined for each context and so
+        different for each problem.
+        """
         return (
             genes[0] +
             genes[1] * x +
@@ -29,6 +33,9 @@ class Chromosome:
 
     @staticmethod
     def compute_fitness(genes):
+        """
+        Compute the fitness of a chromosome.
+        """
         F = 0.0
         for idx in range(settings.size):
             cost = settings.y[idx] - Chromosome.hypothesis(genes, settings.x[idx])

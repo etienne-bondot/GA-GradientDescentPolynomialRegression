@@ -77,9 +77,11 @@ def main(argv):
                 sys.exit()
             update_progress(i * 100 / max_iterations, P)
             if stop == True:
-                if int(P.get_best_fitness()) <= 0: break
-        update_progress(i * 100 / max_iterations, P)
+                if P.get_best_fitness() <= 0.001: break
+        update_progress(100, P)
+        print ''
         print 'processing time: {}'.format(time.time() - start_time)
+        print ''
         P.result()
 
 if __name__ == '__main__':
